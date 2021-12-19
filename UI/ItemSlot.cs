@@ -12,6 +12,7 @@ namespace CraftMagicItems.UI
     {
         public enum Type
         {
+            All,
             Weapon,
             Armor,
             Accessory,

@@ -22,11 +22,12 @@ using Kingmaker.UI.Common;
 
 namespace CraftMagicItems.UI
 {
-    class ItemSlotsView : MonoBehaviour
+    class ItemSlotsView : MonoBehaviour, IItemFilterChanged
     {
         private Transform _prefab;
         private Transform _content;
         private OwlcatMultiButton _selected;
+        private int _currentFilterIndex = 0;
         /* Transfrom Stucture of prefab
          * Componets: VendorSlotPCView, ItemSlotPCView, OwlCatMultiButton, ObservableEnableTrigger, UniRx.Triggers.ObservableEnableTrigger,
          *   UniRx.Triggers.ObservableBeginDragTrigger, UniRx.Triggers.ObservableDragTrigger, UniRx.Triggers.ObservableEndDragTrigger, UniRx.Triggers.ObservableDropTrigger
@@ -68,7 +69,7 @@ namespace CraftMagicItems.UI
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("e95efb85a0912a7489be69d5f03a5308"), //Double Sword
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("a6f7e3dc443ff114ba68b4648fd33e9f"), //Dueling Sword
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("0ec97c08fdf87e44f8f16ba87b511743"), //Dwarf Urgrosh
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("c4e95e3c489721e4382fd8514a522f9d"), //Dwarf Urgrosh Spear
+            //ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("c4e95e3c489721e4382fd8514a522f9d"), //Dwarf Urgrosh Spear
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("a6925f5f897801449a648d865637e5a0"), //Dwarf axe
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("54e960775daa4714fa52e0954d8cf862"), //Earth Breaker
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("b5e6838ad2a62b146b49619bcf9f42aa"), //Elven Curved Blade
@@ -79,7 +80,7 @@ namespace CraftMagicItems.UI
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("bf1e53f7442ed0c43bf52d3abe55e16a"), //Flail
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("7a14a1b224cd173449cb7ffc77d5f65c"), //Glaive
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("91645b645cf121a479c1fabc5678dcb3"), //Hooked Hammer Head
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("018ad48ffd3460d47900491656d2ff26"), //Hooked Hammer Hook
+            //ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("018ad48ffd3460d47900491656d2ff26"), //Hooked Hammer Hook
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("e8059a8eac62cd74f9171d748a5ae428"), //Greataxe
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("1b8c24cd1f9358c48839bb39266468c3"), //Great Club
             ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("5f824fbb0766a3543bbd6ae50248688f"), //Great Sword
@@ -105,7 +106,8 @@ namespace CraftMagicItems.UI
         {
             _content = transform.Find("Viewport/Content/");
             ((RectTransform)_content).pivot = new Vector2(0f, 1f);
-            ((RectTransform)_content).gameObject.AddComponent<ContentSizeFitterExtended>();
+            var csfe = ((RectTransform)_content).gameObject.AddComponent<ContentSizeFitterExtended>();
+            csfe.m_VerticalFit = ContentSizeFitterExtended.FitMode.MinSize;
             transform.Find("Viewport/Placeholder").SafeDestroy();
 
             var vlg = _content.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -135,7 +137,7 @@ namespace CraftMagicItems.UI
             GameObject.DestroyImmediate(prefab.GetComponent<ObservableEndDragTrigger>());
             GameObject.DestroyImmediate(prefab.GetComponent<ObservableDropTrigger>());
 
-            
+            EventBus.Subscribe(this);
             _prefab = prefab;
         }
         public void Awake()
@@ -166,7 +168,7 @@ namespace CraftMagicItems.UI
             {
                 displayName.text = wt.DefaultName;
                 icon.sprite = wt.Icon;
-                LoadTypes(displayName, icon, ItemSlot.Type.Armor);
+                LoadTypes(displayName, icon, ItemSlot.Type.Weapon);
             }
         }
 
@@ -194,7 +196,7 @@ namespace CraftMagicItems.UI
                         break;
                 }
                 icon.sprite = wt.Icon;
-                LoadTypes(displayName, icon, ItemSlot.Type.Armor);
+                LoadTypes(displayName, icon, ItemSlot.Type.Accessory);
             }
         }
 
@@ -216,6 +218,32 @@ namespace CraftMagicItems.UI
                 _selected.SetSelected(true);
                 EventBus.RaiseEvent((Action<IItemSelectionChanged>)(h => h.HandleSelectionChanged(TransformDict[transform])));
             }
+        }
+
+        public void HandleFilterChange(int index)
+        {
+            if (index == _currentFilterIndex)
+                return;
+            _currentFilterIndex = index;
+
+            if (index == 0)
+            {
+                foreach (var t in TransformDict)
+                {
+                    t.Key.gameObject.SetActive(true);
+                }
+            }
+            else
+            {
+                foreach (var t in TransformDict)
+                {
+                    if (t.Value.ItemType == (ItemSlot.Type)index)
+                        t.Key.gameObject.SetActive(true);
+                    else
+                        t.Key.gameObject.SetActive(false);
+                }
+            }
+            _selected.SetSelected(true);
         }
     }
 }

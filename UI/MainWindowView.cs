@@ -85,9 +85,14 @@ namespace CraftMagicItems.UI
             var scrollRect = scrollRectTransform.gameObject.AddComponent<ScrollRectExtended>();
             scrollRect.viewport = (RectTransform)scrollRectTransform.Find("Viewport");
             scrollRect.content = (RectTransform)scrollRectTransform.Find("Viewport/Content/");
-            scrollRect.verticalScrollbar = scrollRectTransform.GetComponentInChildren<Scrollbar>();
+            var scrollBar = scrollRectTransform.GetComponentInChildren<Scrollbar>();
+            scrollBar.direction = Scrollbar.Direction.BottomToTop;
+            scrollRect.verticalScrollbar = scrollBar;
             scrollRect.scrollSensitivity = 35f;
             scrollRect.movementType = ScrollRectExtended.MovementType.Clamped;
+
+            var pcFilterBlock = vendorBlock.Find("PC_FilterBlock/").gameObject.AddComponent<FilterGroupView>();
+            pcFilterBlock.Initialize();
 
             mainWindow.gameObject.SetActive(true);
             mainWindow.SetSiblingIndex(partyPCView.GetSiblingIndex() + 1);

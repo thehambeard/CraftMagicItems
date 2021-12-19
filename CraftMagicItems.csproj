@@ -288,6 +288,7 @@
   <ItemGroup>
     <Compile Include="Core.cs" />
     <Compile Include="DefaultLanguage.cs" />
+    <Compile Include="Interfaces\IItemFilterChanged.cs" />
     <Compile Include="Interfaces\IItemSelectionChanged.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -298,6 +299,7 @@
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="UI\CenterView.cs" />
+    <Compile Include="UI\FilterGroupView.cs" />
     <Compile Include="UI\ItemSlot.cs" />
     <Compile Include="UI\ItemSlotsView.cs" />
     <Compile Include="UI\MainWindowController.cs" />
