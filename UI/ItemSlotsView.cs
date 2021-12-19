@@ -104,7 +104,7 @@ namespace CraftMagicItems.UI
         public void Initialize(Transform prefab)
         {
             _content = transform.Find("Viewport/Content/");
-            ((RectTransform)_content).pivot = new Vector2(0f, 0f);
+            ((RectTransform)_content).pivot = new Vector2(0f, 1f);
             ((RectTransform)_content).gameObject.AddComponent<ContentSizeFitterExtended>();
             transform.Find("Viewport/Placeholder").SafeDestroy();
 
@@ -119,7 +119,6 @@ namespace CraftMagicItems.UI
             prefab.Find("Price").SafeDestroy();
             prefab.Find("Weight").SafeDestroy();
             prefab.Find("Type").SafeDestroy();
-
             prefab.Find("Slot/Item/ItemCanNotEquip").gameObject.SetActive(false);
             prefab.Find("Slot/Item/NeedCheckLayer").gameObject.SetActive(false);
             prefab.Find("Slot/Item/MagicLayer").gameObject.SetActive(false);
