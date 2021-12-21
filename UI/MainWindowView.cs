@@ -80,7 +80,23 @@ namespace CraftMagicItems.UI
             var scrollRectTransform = vendorBlock.Find("VendorStashScrollView/");
             var itemSlotsView = scrollRectTransform.gameObject.AddComponent<ItemSlotsView>();
             itemSlotsView.Initialize(vendorSlotPrefab);
+            AddScroll(scrollRectTransform);
 
+            var enchScrollRect = enchantBlock.Find("VendorStashScrollView");
+            var enchSlotsView = enchScrollRect.gameObject.AddComponent<EnchantSlotsView>();
+            enchSlotsView.Initialize(vendorSlotPrefab);
+            AddScroll(enchScrollRect);
+
+            var pcFilterBlock = vendorBlock.Find("PC_FilterBlock/").gameObject.AddComponent<FilterGroupView>();
+            pcFilterBlock.Initialize();
+
+            mainWindow.gameObject.SetActive(true);
+            mainWindow.SetSiblingIndex(partyPCView.GetSiblingIndex() + 1);
+            return mainWindow.gameObject.AddComponent<MainWindowView>();
+        }
+
+        private static void AddScroll(Transform scrollRectTransform)
+        {
             GameObject.DestroyImmediate(scrollRectTransform.GetComponentInChildren<DragTracker>());
             var scrollRect = scrollRectTransform.gameObject.AddComponent<ScrollRectExtended>();
             scrollRect.viewport = (RectTransform)scrollRectTransform.Find("Viewport");
@@ -90,13 +106,6 @@ namespace CraftMagicItems.UI
             scrollRect.verticalScrollbar = scrollBar;
             scrollRect.scrollSensitivity = 35f;
             scrollRect.movementType = ScrollRectExtended.MovementType.Clamped;
-
-            var pcFilterBlock = vendorBlock.Find("PC_FilterBlock/").gameObject.AddComponent<FilterGroupView>();
-            pcFilterBlock.Initialize();
-
-            mainWindow.gameObject.SetActive(true);
-            mainWindow.SetSiblingIndex(partyPCView.GetSiblingIndex() + 1);
-            return mainWindow.gameObject.AddComponent<MainWindowView>();
         }
     }
 }

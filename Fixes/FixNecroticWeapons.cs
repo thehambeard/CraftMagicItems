@@ -107,23 +107,23 @@ namespace CraftMagicItems.Fixes
 
 
         }
-        [HarmonyPatch(typeof(ItemEntity), "OnPostLoad")]
-        class ItemEntity__PostLoad__Patch
-        {
-            static void Postfix(ItemEntity __instance)
-            {
+        //[HarmonyPatch(typeof(ItemEntity), "OnPostLoad")]
+        //class ItemEntity__PostLoad__Patch
+        //{
+        //    static void Postfix(ItemEntity __instance)
+        //    {
 
-                BlueprintItemEnchantment woundbearerEnchant = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>("7f727c7023be4854babc44d3ee756d31");
+        //        BlueprintItemEnchantment woundbearerEnchant = ResourcesLibrary.TryGetBlueprint<BlueprintItemEnchantment>("7f727c7023be4854babc44d3ee756d31");
 
-                ItemEnchantment toKIll = __instance.Enchantments.FirstOrDefault(x => x.Blueprint.ToReference<BlueprintItemEnchantmentReference>() == woundbearerEnchant.ToReference<BlueprintItemEnchantmentReference>());
-                if (toKIll != null)//Should patch existing woundbearers
-                {
-                    __instance.Enchantments.Remove(toKIll);
+        //        ItemEnchantment toKIll = __instance.Enchantments.FirstOrDefault(x => x.Blueprint.ToReference<BlueprintItemEnchantmentReference>() == woundbearerEnchant.ToReference<BlueprintItemEnchantmentReference>());
+        //        if (toKIll != null)//Should patch existing woundbearers
+        //        {
+        //            __instance.Enchantments.Remove(toKIll);
 
-                }
+        //        }
 
 
-            }
-        }
+        //    }
+        //}
     }
 }

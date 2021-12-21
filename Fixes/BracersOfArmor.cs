@@ -111,13 +111,13 @@ namespace CraftMagicItems.Fixes
 
         }
 
-        [HarmonyPatch(typeof(ItemEntity), "OnPostLoad")]
-        class ItemEntity__PostLoad__Patch
-        {
-            static void Postfix(ItemEntity __instance)
-            {
-                KillIncorporealEnchant(__instance);
-            }
-        }
+        //[HarmonyPatch(typeof(ItemEntity), "OnPostLoad")]
+        //class ItemEntity__PostLoad__Patch
+        //{
+        //    static void Postfix(ItemEntity __instance)
+        //    {
+        //        KillIncorporealEnchant(__instance);
+        //    }
+        //}
     }
 }

@@ -104,6 +104,8 @@ namespace CraftMagicItems.UI
 
         public void Initialize(Transform prefab)
         {
+            _prefab = GameObject.Instantiate(prefab);
+
             _content = transform.Find("Viewport/Content/");
             ((RectTransform)_content).pivot = new Vector2(0f, 1f);
             var csfe = ((RectTransform)_content).gameObject.AddComponent<ContentSizeFitterExtended>();
@@ -117,28 +119,27 @@ namespace CraftMagicItems.UI
             vlg.childControlWidth = false;
             vlg.padding = new RectOffset(0, 0, 0, 0);
 
-            prefab.Find("BodyCanNotEquip").SafeDestroy();
-            prefab.Find("Price").SafeDestroy();
-            prefab.Find("Weight").SafeDestroy();
-            prefab.Find("Type").SafeDestroy();
-            prefab.Find("Slot/Item/ItemCanNotEquip").gameObject.SetActive(false);
-            prefab.Find("Slot/Item/NeedCheckLayer").gameObject.SetActive(false);
-            prefab.Find("Slot/Item/MagicLayer").gameObject.SetActive(false);
-            prefab.Find("Slot/Item/NotableLayer").gameObject.SetActive(false);
-            prefab.Find("Slot/Item/Feather").gameObject.SetActive(false);
-            prefab.Find("Slot/Item/Count").gameObject.SetActive(false);
+            _prefab.Find("BodyCanNotEquip").SafeDestroy();
+            _prefab.Find("Price").SafeDestroy();
+            _prefab.Find("Weight").SafeDestroy();
+            _prefab.Find("Type").SafeDestroy();
+            _prefab.Find("Slot/Item/ItemCanNotEquip").gameObject.SetActive(false);
+            _prefab.Find("Slot/Item/NeedCheckLayer").gameObject.SetActive(false);
+            _prefab.Find("Slot/Item/MagicLayer").gameObject.SetActive(false);
+            _prefab.Find("Slot/Item/NotableLayer").gameObject.SetActive(false);
+            _prefab.Find("Slot/Item/Feather").gameObject.SetActive(false);
+            _prefab.Find("Slot/Item/Count").gameObject.SetActive(false);
 
-            GameObject.DestroyImmediate(prefab.GetComponent<VendorSlotPCView>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ItemSlotPCView>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ObservableEnableTrigger>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ObservableBeginDragTrigger>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ObservableDragTrigger>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ObservableEnableTrigger>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ObservableEndDragTrigger>());
-            GameObject.DestroyImmediate(prefab.GetComponent<ObservableDropTrigger>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<VendorSlotPCView>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ItemSlotPCView>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ObservableEnableTrigger>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ObservableBeginDragTrigger>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ObservableDragTrigger>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ObservableEnableTrigger>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ObservableEndDragTrigger>());
+            GameObject.DestroyImmediate(_prefab.GetComponent<ObservableDropTrigger>());
 
             EventBus.Subscribe(this);
-            _prefab = prefab;
         }
         public void Awake()
         {
