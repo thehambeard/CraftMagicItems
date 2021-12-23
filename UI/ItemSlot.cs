@@ -10,16 +10,7 @@ namespace CraftMagicItems.UI
 {
     public class ItemSlot
     {
-        public enum Type
-        {
-            All,
-            Weapon,
-            Armor,
-            Accessory,
-            Usable
-        }
-
-        public ItemSlot.Type ItemType { get; set; }
+        public Enums.ItemType ItemType { get; set; }
         public string DisplayName {get; set;}
         public Sprite Icon { get; set; }
     }

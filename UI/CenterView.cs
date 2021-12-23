@@ -12,18 +12,44 @@ using Kingmaker.UI.MVVM._PCView.ServiceWindows.Spellbook.Metamagic;
 using TMPro;
 using Kingmaker.UI.MVVM._PCView.Slots;
 using Owlcat.Runtime.UI.Controls.Button;
+using Kingmaker.UI.Tooltip;
 
 namespace CraftMagicItems.UI
 {
-    public class CenterView : MonoBehaviour, IItemSelectionChanged
+    public class CenterView : MonoBehaviour, IItemSelectionChanged, IEnchantSelectionChanged
     {
         private Image _centerIcon;
-        private Dictionary<Transform, ButtonWrapper> _transformDict = new Dictionary<Transform, ButtonWrapper>();
-        private Transform _selected;
-        public void HandleSelectionChanged(ItemSlot itemSlot)
+        private List<RingWrapper> _ringIcons = new List<RingWrapper>();
+        public void HandleEnchantSelectionChanged(List<EnchantSlot> slots)
         {
-            _centerIcon.sprite = itemSlot.Icon;
-            Main.Mod.Debug(itemSlot.DisplayName);
+            for(int i = 0; i < _ringIcons.Count; i++)
+            {
+                _ringIcons[i].Image.gameObject.SetActive(false);
+                _ringIcons[i].Tooltip.enabled = false;
+
+                if(slots != null && i < slots.Count)
+                {
+                    _ringIcons[i].Image.sprite = slots[i].Sprite;
+                    _ringIcons[i].Image.gameObject.SetActive(true);
+                    _ringIcons[i].Tooltip.enabled = true;
+                    _ringIcons[i].Tooltip.SetNameAndDescription(slots[i].DisplayName, slots[i].Description);
+                }
+            }
+                
+        }
+
+        public void HandleItemSelectionChanged(ItemSlot itemSlot)
+        {
+            if (itemSlot == null)
+            {
+                _centerIcon.color = new Color(0f, 0f, 0f, 0f);
+                HandleEnchantSelectionChanged(null);
+            }
+            else
+            {
+                _centerIcon.sprite = itemSlot.Icon;
+                _centerIcon.color = new Color(1f, 1f, 1f, 1f);
+            }
         }
 
         public void Initialize()
@@ -31,80 +57,23 @@ namespace CraftMagicItems.UI
             EventBus.Subscribe(this);
             transform.name = "CenterView";
             _centerIcon = transform.Find("SpellSlot/IconImage/").GetComponent<Image>();
+            _centerIcon.color = new Color(0f, 0f, 0f, 0f);
 
-            var multiButtonTransform = Game.Instance.UI.Canvas.transform.Find("VendorPCView/MainContent/VendorBlock/PC_FilterBlock/FilterPCView/SwitchBar/NonUsable/");
-            var textMesh = Game.Instance.UI.Canvas.transform.Find("VendorPCView/MainContent/VendorBlock/VendorHeader/").GetComponent<TextMeshProUGUI>();
-
-            var temp = new GameObject("Text");
-            temp.AddComponent<RectTransform>();
             foreach (var c in gameObject.GetComponentsInChildren<SpellbookMetamagicSlotPCView>())
             {
-                var button = GameObject.Instantiate(multiButtonTransform, c.transform, false);
-                var multiButton = button.GetComponent<OwlcatMultiButton>();
-                GameObject.DestroyImmediate(button.GetComponent<ItemsFilterEntityPCView>());
-                button.localPosition = new Vector3(0f, 0f, 0f);
-                button.localScale = new Vector3(1.1f, 1.1f, 1.1f);
-
-                var tObject = GameObject.Instantiate(temp, button, false);
-                tObject.transform.localPosition = new Vector3(-1f, -2f);
-                var text = tObject.AddComponent<TextMeshProUGUI>();
-                text.alignment = TextAlignmentOptions.Center;
-
-                multiButton.OnLeftClick.RemoveAllListeners();
-                multiButton.OnLeftClick.AddListener(() => OnLeftClick(button));
-
-                _transformDict.Add(button, new ButtonWrapper(text, button.parent.GetSiblingIndex(), multiButton));
+                var image = c.transform.Find("Image").GetComponent<Image>();
+                image.transform.localScale = new Vector3(.65f, .65f, .65f);
+                var tooltip = image.transform.parent.gameObject.AddComponent<TooltipTrigger>();
+                tooltip.enabled = false;
+                _ringIcons.Add(new RingWrapper() { Image = image, Tooltip = tooltip });
                 GameObject.DestroyImmediate(c);
             }
         }
 
-        private void OnLeftClick(Transform transform)
+        internal class RingWrapper
         {
-            if (_selected) _transformDict[_selected].Button.SetSelected(false);
-            _selected = transform;
-            _transformDict[transform].Button.SetSelected(true);
-        }
-
-        internal class ButtonWrapper
-        {
-            public TextMeshProUGUI TextMesh { get; set; }
-            public OwlcatMultiButton Button { get; set; }
-            public int SiblingIndex { get; set; }
-            public int Plus
-            {
-                get 
-                {
-                    switch(SiblingIndex)
-                    {
-                        case 0:
-                            return 1;
-                        case 1:
-                            return 2;
-                        case 2:
-                            return 8;
-                        case 3:
-                            return 3;
-                        case 4:
-                            return 7;
-                        case 5:
-                            return 4;
-                        case 6:
-                            return 6;
-                        case 7:
-                            return 5;
-                    }
-                    return 0;
-                }
-            }
-
-            public ButtonWrapper(TextMeshProUGUI textmesh, int siblingindex, OwlcatMultiButton button)
-            {
-                Button = button;
-                SiblingIndex = siblingindex;
-                TextMesh = textmesh;
-
-                TextMesh.text = $"+{Plus}";
-            }
+            public Image Image;
+            public TooltipTrigger Tooltip;
         }
     }
 }

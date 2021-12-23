@@ -140,6 +140,7 @@ namespace CraftMagicItems.UI
             GameObject.DestroyImmediate(_prefab.GetComponent<ObservableDropTrigger>());
 
             EventBus.Subscribe(this);
+
         }
         public void Awake()
         {
@@ -151,7 +152,6 @@ namespace CraftMagicItems.UI
             LoadArmorTypes(displayName, icon);
             LoadAccessoryTypes(displayName, icon);
             SortTransformsByName();
-            OnLeftClick(_content.GetChild(0));
         }
 
         private void SortTransformsByName()
@@ -169,7 +169,7 @@ namespace CraftMagicItems.UI
             {
                 displayName.text = wt.DefaultName;
                 icon.sprite = wt.Icon;
-                LoadTypes(displayName, icon, ItemSlot.Type.Weapon);
+                LoadTypes(displayName, icon, Enums.ItemType.Weapon);
             }
         }
 
@@ -179,7 +179,7 @@ namespace CraftMagicItems.UI
             {
                 displayName.text = wt.DefaultName;
                 icon.sprite = wt.Icon;
-                LoadTypes(displayName, icon, ItemSlot.Type.Armor);
+                LoadTypes(displayName, icon, Enums.ItemType.Armor);
             }
         }
 
@@ -197,13 +197,14 @@ namespace CraftMagicItems.UI
                         break;
                 }
                 icon.sprite = wt.Icon;
-                LoadTypes(displayName, icon, ItemSlot.Type.Accessory);
+                LoadTypes(displayName, icon, Enums.ItemType.Accessory);
             }
         }
 
-        private void LoadTypes(TextMeshProUGUI displayName, Image icon, ItemSlot.Type type)
+        private void LoadTypes(TextMeshProUGUI displayName, Image icon, Enums.ItemType type)
         {
             var transfom = GameObject.Instantiate(_prefab, _content, false);
+            transfom.gameObject.SetActive(type == (Enums.ItemType)_currentFilterIndex);
             var multiButton = transfom.GetComponent<OwlcatMultiButton>();
             multiButton.OnLeftClick.RemoveAllListeners();
             multiButton.OnLeftClick.AddListener(() => OnLeftClick(transfom));
@@ -217,34 +218,26 @@ namespace CraftMagicItems.UI
                 if (_selected) _selected.SetSelected(false);
                 _selected = transform.GetComponent<OwlcatMultiButton>();
                 _selected.SetSelected(true);
-                EventBus.RaiseEvent((Action<IItemSelectionChanged>)(h => h.HandleSelectionChanged(TransformDict[transform])));
+                EventBus.RaiseEvent((Action<IItemSelectionChanged>)(h => h.HandleItemSelectionChanged(TransformDict[transform])));
             }
         }
 
-        public void HandleFilterChange(int index)
+        public void HandleItemFilterChange(int index)
         {
             if (index == _currentFilterIndex)
                 return;
             _currentFilterIndex = index;
-
-            if (index == 0)
+            foreach (var t in TransformDict)
             {
-                foreach (var t in TransformDict)
-                {
-                    t.Key.gameObject.SetActive(true);
-                }
-            }
-            else
-            {
-                foreach (var t in TransformDict)
-                {
-                    if (t.Value.ItemType == (ItemSlot.Type)index)
+                    if (t.Value.ItemType == (Enums.ItemType)index)
                         t.Key.gameObject.SetActive(true);
                     else
                         t.Key.gameObject.SetActive(false);
-                }
             }
-            _selected.SetSelected(true);
+            
+            _selected.SetSelected(false);
+            _selected = null;
+            EventBus.RaiseEvent((Action<IItemSelectionChanged>)(h => h.HandleItemSelectionChanged(null)));
         }
     }
 }

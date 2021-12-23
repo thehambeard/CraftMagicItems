@@ -14,6 +14,7 @@ using Kingmaker.UI.MVVM._PCView.Slots;
 using UnityEngine.UIElements;
 using UnityEngine.UI;
 using Kingmaker.UI.Common;
+using Owlcat.Runtime.UI.Controls.Button;
 
 namespace CraftMagicItems.UI
 {
@@ -58,7 +59,7 @@ namespace CraftMagicItems.UI
             GameObject.DestroyImmediate(vendorBlock.GetComponentInChildren<ItemSlotsGroupView>());
             GameObject.DestroyImmediate(vendorBlock.GetComponentInChildren<ScrollHandler>());
 
-            vendorBlock.Find("PC_FilterBlock/FilterPCView/").gameObject.SetActive(true);
+            vendorBlock.Find("PC_FilterBlock/FilterPCView/").gameObject.SetActive(true) ;
             var vendorBlockText = vendorBlock.Find("VendorHeader").GetComponent<TextMeshProUGUI>();
             vendorBlockText.text = "<voffset=0em><font=\"Saber_Dist32\"><color=#672B31><size=140%>I</size></color></font></voffset>tem to Enchant";
 
@@ -89,6 +90,12 @@ namespace CraftMagicItems.UI
 
             var pcFilterBlock = vendorBlock.Find("PC_FilterBlock/").gameObject.AddComponent<FilterGroupView>();
             pcFilterBlock.Initialize();
+
+            var enchFilterBlock = enchantBlock.Find("PC_FilterBlock/");
+            GameObject.DestroyImmediate(enchFilterBlock.GetComponent<ItemsFilterPCView>());
+            foreach (var c in enchantBlock.GetComponentsInChildren<OwlcatMultiButton>())
+                c.transform.SafeDestroy();
+
 
             mainWindow.gameObject.SetActive(true);
             mainWindow.SetSiblingIndex(partyPCView.GetSiblingIndex() + 1);

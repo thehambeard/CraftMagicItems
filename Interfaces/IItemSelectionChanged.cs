@@ -5,7 +5,7 @@ namespace CraftMagicItems.Interfaces
 {
     public interface IItemSelectionChanged : ISubscriber, IGlobalSubscriber
     {
-        void HandleSelectionChanged(ItemSlot itemSlot);
+        void HandleItemSelectionChanged(ItemSlot itemSlot);
     }
 }
 

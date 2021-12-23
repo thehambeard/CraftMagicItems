@@ -1,6 +1,8 @@
-﻿using Kingmaker.Blueprints;
+﻿using CraftMagicItems.Interfaces;
+using Kingmaker.Blueprints;
 using Kingmaker.Blueprints.Items.Armors;
 using Kingmaker.Blueprints.Items.Ecnchantments;
+using Kingmaker.Blueprints.Items.Equipment;
 using Kingmaker.Blueprints.Items.Weapons;
 using Kingmaker.PubSubSystem;
 using Kingmaker.ResourceLinks;
@@ -22,11 +24,11 @@ using UnityEngine.UI;
 
 namespace CraftMagicItems.UI
 {
-    class EnchantSlotsView : MonoBehaviour
+    class EnchantSlotsView : MonoBehaviour, IItemFilterChanged
     {
         private Transform _prefab;
         private Transform _content;
-        private OwlcatMultiButton _selected;
+        private HashSet<OwlcatMultiButton> _selected = new HashSet<OwlcatMultiButton>();
         private int _currentFilterIndex = 0;
         private Dictionary<Transform, EnchantSlot> _transformDict = new Dictionary<Transform, EnchantSlot>();
         /* Transfrom Stucture of prefab
@@ -56,32 +58,9 @@ namespace CraftMagicItems.UI
          * --Icon
          */
 
-        private List<BlueprintWeaponEnchantment> _weaponEnchants = new List<BlueprintWeaponEnchantment>()
-        {
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("a36ad92c51789b44fa8a1c5c116a1328"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("57315bc1e1f62a741be0efde688087e9"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("0ca43051edefcad4b9b2240aa36dc8d4"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("ee71cc8848219c24b8418a628cc3e2fa"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("78cf9fabe95d3934688ea898c154d904"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("73d30862f33cc754bb5a5f3240162ae6"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("e5cb46a0a658b0a41854447bea32d2ee"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("b6948040cdb601242884744a543050d4"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("dcecb5f2ffacfd44ead0ed4f8846445d"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("1e25d1f515c867d40b9c0642e0b40ec2"),
-        };
-
-        private List<BlueprintArmorEnchantment> _armorEnchants = new List<BlueprintArmorEnchantment>()
-        {
-            ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("dd0e096412423d646929d9b945fd6d4c"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("09e0be00530efec4693a913d6a7efe23"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("1346633e0ff138148a9a925e330314b5"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("e6fa2f59c7f1bb14ebfc429f17d0a4c6"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("933456ff83c454146a8bf434e39b1f93"),
-            ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("5faa3aaee432ac444b101de2b7b0faf7"),
-        };
-
         private Sprite _weaponSprite = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponType>("2bc77aa47f97de348aefcf03ec8fa43b").Icon;
         private Sprite _armorSprite = ResourcesLibrary.TryGetBlueprint<BlueprintArmorType>("d326c3c61a84c6f40977c84fab41503d").Icon;
+        private Sprite _accessorySprite = ResourcesLibrary.TryGetBlueprint<BlueprintItemEquipmentBelt>("b6af4c1834999e74497b41588d1071cd").Icon;
 
         public void Initialize(Transform prefab)
         {
@@ -112,7 +91,6 @@ namespace CraftMagicItems.UI
             _prefab.Find("Slot/Item/Count").gameObject.SetActive(false);
             _prefab.Find("Slot/Item/Icon").gameObject.SetActive(true);
 
-            _prefab.gameObject.AddComponent<TooltipTrigger>();
             GameObject.DestroyImmediate(_prefab.GetComponent<VendorSlotPCView>());
             GameObject.DestroyImmediate(_prefab.GetComponent<ItemSlotPCView>());
             GameObject.DestroyImmediate(_prefab.GetComponent<ObservableEnableTrigger>());
@@ -128,11 +106,8 @@ namespace CraftMagicItems.UI
         public void Awake()
         {
             _content = transform.Find("Viewport/Content/");
-            var displayName = _prefab.Find("DisplayName").GetComponent<TextMeshProUGUI>();
-            var description = _prefab.Find("Type").GetComponent<TextMeshProUGUI>();
-            var icon = _prefab.Find("Slot/Item/Icon").GetComponent<Image>();
-            LoadWeaponTypes(displayName, icon, description);
-            LoadArmorTypes(displayName, icon, description);
+            
+            LoadAllEnchants();
             SortTransformsByName();
         }
 
@@ -145,42 +120,242 @@ namespace CraftMagicItems.UI
             }
         }
 
-        private void LoadWeaponTypes(TextMeshProUGUI displayName, Image icon, TextMeshProUGUI description)
+        private void LoadAllEnchants()
         {
-            foreach (var wt in _weaponEnchants)
+            #region WEAPONENCHANTS
+            BlueprintWeaponEnchantment weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("a36ad92c51789b44fa8a1c5c116a1328");
+            EnchantSlot slot = new EnchantSlot()
             {
-                displayName.text = wt.Name;
-                description.text = wt.Description;
-                icon.sprite = _weaponSprite;
-                LoadTypes(displayName, icon, EnchantSlot.Type.Weapon, description);
-            }
+                Blueprint = weaponBP,
+                DisplayName = "Agile",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.None,
+                Sprite = _weaponSprite
+
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("57315bc1e1f62a741be0efde688087e9");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Anarchic",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.LawOrChaos,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("0ca43051edefcad4b9b2240aa36dc8d4");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Axiomatic",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.LawOrChaos,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("d42fc23b92c640846ac137dc26e000d4");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Weapon +1",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Plus,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("eb2faccc4c9487d43b3575d7e77ff3f5");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Weapon +2",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Plus,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("80bb8a737579e35498177e1e3c75899b");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Weapon +3",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Plus,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("783d7d496da6ac44f9511011fc5f1979");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Weapon +4",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Plus,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("bdba267e951851449af552aa9f9e3992");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Weapon +5",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Plus,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            weaponBP = ResourcesLibrary.TryGetBlueprint<BlueprintWeaponEnchantment>("0326d02d2e24d254a9ef626cc7a3850f");
+            slot = new EnchantSlot()
+            {
+                Blueprint = weaponBP,
+                DisplayName = "Weapon +6",
+                Description = weaponBP.Description,
+                EnchantType = Enums.ItemType.Weapon,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Plus,
+                Sprite = _weaponSprite
+            };
+            BuildEnchant(slot);
+            #endregion
+            BlueprintArmorEnchantment armorBP = ResourcesLibrary.TryGetBlueprint<BlueprintArmorEnchantment>("dd0e096412423d646929d9b945fd6d4c");
+            slot = new EnchantSlot()
+            {
+                Blueprint = armorBP,
+                DisplayName = "Acid Resist 10",
+                Description = armorBP.Description,
+                EnchantType = Enums.ItemType.Armor,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.None,
+                Sprite = _armorSprite
+            };
+            BuildEnchant(slot);
+            BlueprintEquipmentEnchantment equipBP = ResourcesLibrary.TryGetBlueprint<BlueprintEquipmentEnchantment>("3619b3ddc8e156a498b7fd5db02457b8");
+            slot = new EnchantSlot()
+            {
+                Blueprint = equipBP,
+                DisplayName = "Charisma +1",
+                Description = armorBP.Description,
+                EnchantType = Enums.ItemType.Accessory,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Charisma,
+                Sprite = _accessorySprite
+            };
+            BuildEnchant(slot);
+            equipBP = ResourcesLibrary.TryGetBlueprint<BlueprintEquipmentEnchantment>("f945413e1b120294780ba9de26bd2f7a");
+            slot = new EnchantSlot()
+            {
+                Blueprint = equipBP,
+                DisplayName = "Charisma +2",
+                Description = armorBP.Description,
+                EnchantType = Enums.ItemType.Accessory,
+                Cost = 1000,
+                CL = 1,
+                Grouping = EnchantSlot.ExclusiveGroup.Charisma,
+                Sprite = _accessorySprite
+            };
+            BuildEnchant(slot);
         }
 
-        private void LoadArmorTypes(TextMeshProUGUI displayName, Image icon, TextMeshProUGUI description)
+        private void BuildEnchant(EnchantSlot slot)
         {
-            foreach (var wt in _armorEnchants)
-            {
-                displayName.text = wt.Name;
-                description.text = wt.Description;
-                icon.sprite = _armorSprite;
-                LoadTypes(displayName, icon, EnchantSlot.Type.Weapon, description);
-            }
-        }
+            var displayName = _prefab.Find("DisplayName").GetComponent<TextMeshProUGUI>();
+            var description = _prefab.Find("Type").GetComponent<TextMeshProUGUI>();
+            var icon = _prefab.Find("Slot/Item/Icon").GetComponent<Image>();
 
-        private void LoadTypes(TextMeshProUGUI displayName, Image icon, EnchantSlot.Type type, TextMeshProUGUI description)
-        {
-            var transfom = GameObject.Instantiate(_prefab, _content, false);
-            var tooltip = transfom.gameObject.AddComponent<TooltipTrigger>();
+            displayName.text = slot.DisplayName;
+            description.text = slot.Blueprint.Description;
+            icon.sprite = slot.Sprite;
+
+            var transform = GameObject.Instantiate(_prefab, _content, false);
+            transform.name = "EnchantSlotView";
+            var tooltip = transform.gameObject.AddComponent<TooltipTrigger>();
             tooltip.enabled = true;
             tooltip.SetNameAndDescription(displayName.text, description.text);
-            var multiButton = transfom.GetComponent<OwlcatMultiButton>();
+            var multiButton = transform.GetComponent<OwlcatMultiButton>();
             multiButton.OnLeftClick.RemoveAllListeners();
-            multiButton.OnLeftClick.AddListener(() => OnLeftClick(transfom));
-            _transformDict.Add(transfom, new EnchantSlot() { DisplayName = displayName.text, EnchantType = type});
+            multiButton.OnLeftClick.AddListener(() => OnLeftClick(transform));
+            slot.DisableLayer = transform.GetChild(3).GetChild(1).GetChild(0);
+            transform.gameObject.SetActive((int)slot.EnchantType == _currentFilterIndex);
+            _transformDict.Add(transform, slot);
         }
 
         private void OnLeftClick(Transform transform)
         {
+            var button = transform.GetComponent<OwlcatMultiButton>();
+            if (!_selected.Contains(button) && _transformDict[transform].Enabled)
+            {
+                _selected.Add(button);
+                button.SetSelected(true);
+                _transformDict[transform].Selected = true;
+            }
+            else if(_selected.Contains(button))
+            {
+                _selected.Remove(button);
+                button.SetSelected(false);
+                _transformDict[transform].Selected = false;
+            }
+            EnsureValidSelections();
+            EventBus.RaiseEvent((Action<IEnchantSelectionChanged>)(h => h.HandleEnchantSelectionChanged(_transformDict.Where(x => x.Value.Selected).Select(x => x.Value).ToList())));
+        }
+
+        public void EnsureValidSelections()
+        {
+            foreach (var tran in _transformDict)
+            {
+                tran.Value.Enabled = true;
+
+                foreach (var select in _selected)
+                {
+                   if (_transformDict[select.transform].Grouping == tran.Value.Grouping && tran.Key != select.transform)
+                        tran.Value.Enabled = false;
+                }
+                tran.Value.DisableLayer.gameObject.SetActive(!tran.Value.Enabled);
+            }
+        }
+
+        public void HandleItemFilterChange(int index)
+        {
+            if (index == _currentFilterIndex)
+                return;
+            _currentFilterIndex = index;
+            foreach (var t in _transformDict)
+            {
+                t.Value.Selected = false;
+                if (t.Value.EnchantType == (Enums.ItemType)index)
+                    t.Key.gameObject.SetActive(true);
+                else
+                    t.Key.gameObject.SetActive(false);
+            }
+
+            _selected = new HashSet<OwlcatMultiButton>();
+            EnsureValidSelections();
         }
     }
 }

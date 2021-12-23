@@ -1,24 +1,39 @@
-﻿using System;
+﻿using Kingmaker.Blueprints.Items.Ecnchantments;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace CraftMagicItems.UI
 {
-    class EnchantSlot
+    public class EnchantSlot
     {
-        public enum Type
+       
+
+        public enum ExclusiveGroup
         {
-            All,
-            Weapon,
-            Armor,
-            Accessory,
-            Usable
+            None,
+            AcidResist,
+            Adamantine,
+            Bane,
+            Charisma,
+            EquipmentArmorBonus,
+            LawOrChaos,
+            Plus
         }
 
-        public EnchantSlot.Type EnchantType;
+        public Enums.ItemType EnchantType;
+        public EnchantSlot.ExclusiveGroup Grouping;
         public string DisplayName;
         public string Description;
+        public int Cost;
+        public int CL;
+        public Transform DisableLayer;
+        public BlueprintItemEnchantment Blueprint;
+        public bool Enabled = true;
+        public Sprite Sprite;
+        public bool Selected = false;
     }
 }
